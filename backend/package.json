@@ -8,6 +8,8 @@
     "start": "node server.js"
   },
   "dependencies": {
+    "@langchain/core": "^1.2.8",
+    "@langchain/mistralai": "^1.2.0",
     "cors": "^2.8.5",
     "dotenv": "^16.6.1",
     "express": "^5.1.0",

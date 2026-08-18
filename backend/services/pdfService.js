@@ -1,6 +1,7 @@
 import fs from "fs/promises";
 import { PDFParse } from "pdf-parse";
 import chunkText from "../utils/chunkText.js";
+import { createEmbeddings } from "./embeddingService.js";
 
 export const extractPdfText = async (filePath) => {
     const buffer = await fs.readFile(filePath);
@@ -11,10 +12,12 @@ export const extractPdfText = async (filePath) => {
     const result = await parser.getText();
     await parser.destroy();
     const chunks = chunkText(result.text);
+    const vectors = await createEmbeddings(chunks);
 
     return {
         text: result.text,
         pages: result.total,
-        chunks
+        chunks,
+        vectors
     };
 };
