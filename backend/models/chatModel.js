@@ -22,6 +22,13 @@ export const getChatById = async (chatId) => {
     });
 };
 
+export const getAllChats = async () => {
+    return chats
+        .find({ type: "general" })
+        .sort({ updatedAt: -1 })
+        .toArray();
+};
+
 export const addMessage = async (chatId, message) => {
     await chats.updateOne(
         { chatId },
@@ -35,4 +42,11 @@ export const addMessage = async (chatId, message) => {
         }
     );
     return getChatById(chatId);
+};
+
+export const deleteChat = async (chatId) => {
+    const result = await chats.deleteOne({
+        chatId
+    });
+    return result;
 };

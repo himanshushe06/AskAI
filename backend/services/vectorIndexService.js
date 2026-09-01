@@ -13,7 +13,6 @@ export const createVectorIndex = async () => {
     const existingIndex = indexes.find( index => index.name === indexName );
 
     if (existingIndex) {
-        console.log("MongoDB vector index already exists");
         return;
     }
 
@@ -31,6 +30,4 @@ export const createVectorIndex = async () => {
             ]
         }
     });
-
-    console.log("MongoDB vector index created");
 };

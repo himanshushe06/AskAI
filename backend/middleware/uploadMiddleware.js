@@ -8,7 +8,7 @@ if (!fs.existsSync(uploadDirectory)) {
     fs.mkdirSync(uploadDirectory, { recursive: true });
     }
 
-    const storage = multer.diskStorage({
+const storage = multer.diskStorage({
     destination: (req, file, cb) => {
         cb(null, uploadDirectory);
     },
@@ -20,7 +20,7 @@ if (!fs.existsSync(uploadDirectory)) {
 
         cb(null, filename);
     }
-    });
+});
 
 const fileFilter = (req, file, cb) => {
     if (file.mimetype === "application/pdf") {

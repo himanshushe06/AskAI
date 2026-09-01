@@ -8,10 +8,12 @@ const database = client.db( process.env.DB_NAME || "chatBot" );
 const collection = database.collection(
     process.env.MONGODB_VECTOR_COLLECTION || "document_chunks"
 );
+
 const embeddings = new MistralAIEmbeddings({
     model: process.env.MISTRAL_EMBEDDING_MODEL || "mistral-embed",
     apiKey: process.env.MISTRAL_API_KEY
 });
+
 const vectorStore = new MongoDBAtlasVectorSearch(
     embeddings,
     {

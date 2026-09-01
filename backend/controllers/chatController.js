@@ -1,21 +1,53 @@
 import crypto from "crypto";
-import { generateAnswer } from "../services/chatService.js";
-import { createChat,getChatById,addMessage } from "../models/chatModel.js";
+import { createChat,getChatById,getAllChats,addMessage,deleteChat } from "../models/chatModel.js";
+import { generateGeneralAnswer } from "../services/chatService.js";
 
-export const chat = async (req, res, next) => {
+export const getAllChatsController = async (req, res, next) => {
     try {
-        const { chatId,documentId,query } = req.body;
-        if (!documentId) {
+        const chats = await getAllChats();
+        return res.status(200).json({
+            success: true,
+            chats
+        });
+    } catch (error) {
+        next(error);
+    }
+};
+
+// single chat
+export const getChatController = async (req, res, next) => {
+    try {
+        const { chatId } = req.params;
+        if (!chatId) {
             return res.status(400).json({
                 success: false,
-                message: "Document ID is required"
+                message: "Chat ID is required"
             });
         }
+        const chat = await getChatById(chatId);
+        if (!chat) {
+            return res.status(404).json({
+                success: false,
+                message: "Chat not found"
+            });
+        }
+        return res.status(200).json({
+            success: true,
+            chat
+        });
+    } catch (error) {
+        next(error);
+    }
+};
 
-        if (!query?.trim()) {
+//general chat message
+export const sendChatController = async (req, res, next) => {
+    try {
+        const { chatId, message } = req.body;
+        if (!message?.trim()) {
             return res.status(400).json({
                 success: false,
-                message: "Query is required"
+                message: "Message is required"
             });
         }
 
@@ -26,53 +58,33 @@ export const chat = async (req, res, next) => {
 
         const activeChatId = currentChat?.chatId || crypto.randomUUID();
         if (!currentChat) {
-            await createChat({
+            currentChat = await createChat({
                 chatId: activeChatId,
-                documentId
+                type: "general",
+                title: message.trim().slice(0, 50)
             });
         }
 
-        await addMessage(activeChatId, {
-            role: "user",
-            content: query.trim(),
-            createdAt: new Date()
-        });
-
-        const result = await generateAnswer(
-            query.trim(),
-            documentId
-        );
-
-        res.setHeader(
-            "Content-Type",
-            "text/plain; charset=utf-8"
-        );
-
-        res.setHeader(
-            "Cache-Control",
-            "no-cache"
-        );
-
-        res.setHeader(
-            "Connection",
-            "keep-alive"
-        );
-
-        if (!result.results.length) {
-            const answer = "I could not find relevant information in the uploaded document.";
-            await addMessage(activeChatId, {
-                role: "assistant",
-                content: answer,
+        const history = currentChat?.messages || [];
+        await addMessage( activeChatId,
+            {
+                role: "user",
+                content: message.trim(),
                 createdAt: new Date()
-            });
-            res.write(answer);
-            res.end();
-            return;
-        }
-
+            }
+        );
+        const result = await generateGeneralAnswer( message.trim(), history);
+        res.setHeader( "Content-Type", "text/plain; charset=utf-8" );
+        res.setHeader( "Cache-Control", "no-cache" );
+        res.setHeader( "Connection", "keep-alive" );
+        // VERY IMPORTANT
+        res.setHeader( "X-Chat-Id",activeChatId );
         let finalResponse = "";
-        for await (const chunk of result.stream) {
-            const text = result.getTextContent(chunk.content);
+
+        
+
+        for await ( const chunk of result.stream ) {
+            const text = result.getTextContent( chunk.content );
             if (!text) {
                 continue;
             }
@@ -80,16 +92,46 @@ export const chat = async (req, res, next) => {
             res.write(text);
         }
 
-        await addMessage(activeChatId, {
-            role: "assistant",
-            content: finalResponse,
-            sources: result.results.map(item => ({
-                score: item.score,
-                metadata: item.metadata
-            })),
-            createdAt: new Date()
-        });
+        await addMessage(
+            activeChatId,
+            {
+                role: "assistant",
+                content: finalResponse,
+                createdAt: new Date()
+            }
+        );
         res.end();
+    } catch (error) {
+        next(error);
+    }
+};
+
+export const deleteChatController = async ( req,res,next ) => {
+    try {
+        const { chatId } = req.params;
+
+        if (!chatId) {
+            return res.status(400).json({
+                success: false,
+                message: "Chat ID is required"
+            });
+        }
+        const result = await deleteChat(chatId);
+        if ( result.deletedCount === 0) {
+            return res.status(404).json({
+                success: false,
+                message: "Chat not found",
+                chatId
+            });
+        }
+
+        return res.status(200).json({
+            success: true,
+            message: "Chat deleted successfully",
+            chatId
+        });
+
+
     } catch (error) {
         next(error);
     }
