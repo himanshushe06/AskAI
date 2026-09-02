@@ -1,487 +1,1014 @@
-AskAI — AI Assistant & PDF RAG Application
+# 🤖 AskAI
 
-AskAI is a full-stack AI assistant that supports general AI conversations and question answering over uploaded PDF documents.
+<p align="center">
+  <img src="https://img.shields.io/badge/React-19-61DAFB?logo=react&logoColor=white" />
+  <img src="https://img.shields.io/badge/Node.js-Express-339933?logo=node.js&logoColor=white" />
+  <img src="https://img.shields.io/badge/MongoDB-Vector%20Database-47A248?logo=mongodb&logoColor=white" />
+  <img src="https://img.shields.io/badge/Mistral%20AI-LLM-orange" />
+  <img src="https://img.shields.io/badge/LangChain-RAG-blue" />
+  <img src="https://img.shields.io/badge/Tavily-Web%20Search-purple" />
+  <img src="https://img.shields.io/badge/Vite-Frontend-646CFF?logo=vite&logoColor=white" />
+  <img src="https://img.shields.io/badge/License-MIT-yellow" />
+</p>
 
-It combines a React/Vite frontend with a Node.js/Express backend, MongoDB, Mistral AI, LangChain, PDF text extraction, embeddings, vector search, and Tavily web search.
+A **full-stack AI assistant and Retrieval-Augmented Generation (RAG) application** built using **React, Node.js, Express, MongoDB Vector Search, LangChain, and Mistral AI**.
 
-Features
+AskAI provides two major capabilities:
 
-General AI chat with conversation history
+- 💬 **General AI Chat** with optional real-time web search
+- 📄 **PDF Chat** that allows users to upload documents and ask questions based on their content
 
-Streaming AI responses
+The application combines **LLM-based generation, vector embeddings, semantic retrieval, and web search** to provide contextual and up-to-date answers.
 
-Current-information web search through Tavily
+---
 
-PDF upload and text extraction
+# ✨ Features
 
-Text chunking and embedding generation
+## 💬 General AI Chat
 
-MongoDB vector storage/retrieval
+- Ask general questions using natural language
+- Powered by Mistral AI
+- Streaming AI responses
+- Conversation history
+- Persistent chat storage
+- Automatic chat creation
+- Delete conversations
+- Context-aware responses
 
-Retrieval-Augmented Generation (RAG)
+---
 
-Chat creation, loading, and deletion
+## 🌐 AI Web Search
 
-Centralized Express error handling
+AskAI can automatically decide when web search is required.
 
-Health-check API
+For questions involving:
 
-Environment-based configuration
+- Current information
+- Latest news
+- Today's information
+- Current political office holders
+- Current prices
+- Current technology versions
+- Recent events
+- Sports results
+- Other time-sensitive information
 
-Architecture
+the AI can call the **Tavily Web Search API** and use the returned information to generate the final response.
 
-React / Vite Frontend
-        |
-        | REST / Streaming API
-        v
-Node.js + Express Backend
-        |
-        +-------------------+-------------------+
-        |                   |                   |
-        v                   v                   v
-   General Chat          PDF / RAG          MongoDB
-        |                   |                   |
-        v                   v                   |
-   Mistral AI        PDF extraction            |
-        |                   |                   |
-        v                   v                   |
-     Tavily       Chunking + Embeddings        |
-                            |                   |
-                            +------ Vector -----+
-                                   Search
+### Web Search Flow
 
-How General AI Works
-
+```text
 User Question
-      |
-      v
-POST /api/chat
-      |
-      v
-chatController
-      |
-      v
-generateGeneralAnswer()
-      |
-      v
+      │
+      ▼
 Mistral AI
-   /       \
-  /         \
-No tool    Web search required
-  |               |
-  |               v
-  |            Tavily
-  |               |
-  +-------+-------+
-          |
-          v
-    Final Mistral Response
-          |
-          v
-     Stream to UI
+      │
+      ├── Stable Question ──► Generate Answer
+      │
+      └── Current Information
+                    │
+                    ▼
+               Tavily Search
+                    │
+                    ▼
+             Search Results
+                    │
+                    ▼
+                Mistral AI
+                    │
+                    ▼
+              Final Answer
+```
 
-Mistral decides whether the question needs current web information. If required, the backend executes the web_search tool through Tavily and provides the results to Mistral before generating the final response.
+---
 
-How PDF RAG Works
+# 📄 PDF Chat
 
-Document ingestion
+AskAI allows users to upload PDF documents and ask questions based on their contents.
 
-Upload PDF
-   |
-   v
-Multer
-   |
-   v
-PDF text extraction
-   |
-   v
-Chunk text
-   |
-   v
-Generate embeddings
-   |
-   v
-Generate documentId
-   |
-   +--------------------+
-   |                    |
-   v                    v
-documents collection   vector/chunk collection
-(metadata)             (text + embedding)
+The PDF processing pipeline performs:
 
-For each PDF:
+1. PDF upload
+2. Text extraction
+3. Text chunking
+4. Embedding generation
+5. Vector storage
+6. Semantic retrieval
+7. Context construction
+8. LLM answer generation
 
-The file is uploaded through POST /api/pdfs/upload.
+---
 
-PDF text is extracted using pdf-parse.
+# 🧠 RAG Architecture
 
-The text is split into chunks.
+The core PDF question-answering system follows a **Retrieval-Augmented Generation (RAG)** architecture.
 
-Embeddings are generated for the chunks.
-
-One documentId is generated for the complete PDF.
-
-PDF metadata is saved in MongoDB.
-
-Each chunk is saved with its embedding and document metadata.
-
-The temporary uploaded file is deleted.
-
-Question answering
-
-User Question
-      |
-      v
+```text
+                    PDF
+                     │
+                     ▼
+              PDF Text Extraction
+                     │
+                     ▼
+                Text Chunking
+                     │
+                     ▼
+             Embedding Generation
+                     │
+                     ▼
+             MongoDB Vector Store
+                     │
+                     │
+User Question ──────┘
+      │
+      ▼
 Question Embedding
-      |
-      v
-MongoDB Vector Search
-      |
-      v
+      │
+      ▼
+Vector Similarity Search
+      │
+      ▼
 Relevant PDF Chunks
-      |
-      v
+      │
+      ▼
 Context + Question
-      |
-      v
-Mistral AI
-      |
-      v
-Answer
+      │
+      ▼
+   Mistral AI
+      │
+      ▼
+   Final Answer
+```
 
-The important RAG concept is that relevant information is retrieved from the uploaded document and supplied to the language model as context.
+---
 
-Project Structure
+# 🔍 How RAG Works
 
-AskAI/
-├── frontend/
-│   ├── src/
-│   │   ├── components/
-│   │   ├── pages/
-│   │   ├── services/
-│   │   └── ...
-│   ├── package.json
-│   └── ...
-│
-├── backend/
-│   ├── config/
-│   │   ├── db.js
-│   │   └── vectorStore.js
-│   ├── controllers/
-│   │   ├── chatController.js
-│   │   ├── pdfController.js
-│   │   └── ...
-│   ├── middleware/
-│   │   ├── errorMiddleware.js
-│   │   └── uploadMiddleware.js
-│   ├── models/
-│   │   ├── chatModel.js
-│   │   └── ...
-│   ├── routes/
-│   │   ├── chatRoutes.js
-│   │   ├── pdfRoutes.js
-│   │   ├── ragRoutes.js
-│   │   ├── retrievalRoutes.js
-│   │   └── healthRoutes.js
-│   ├── services/
-│   │   ├── chatService.js
-│   │   ├── pdfService.js
-│   │   ├── embeddingService.js
-│   │   ├── documentService.js
-│   │   ├── vectorIndexService.js
-│   │   └── ...
-│   ├── utils/
-│   │   └── chunkText.js
-│   ├── app.js
-│   ├── server.js
-│   ├── .env
-│   └── package.json
-│
-└── README.md
+## 1️⃣ Upload PDF
 
-Main API Routes
+The frontend sends the PDF to:
 
-Route
-
-Purpose
-
-GET /api/health
-
-Backend health check
-
-/api/pdfs
-
-PDF/document operations
-
-/api/retrieval
-
-Retrieval/vector-search operations
-
-/api/chat
-
-General AI chat
-
-/api/rag
-
-RAG operations
-
-PDF upload
-
+```http
 POST /api/pdfs/upload
+```
 
-Send the PDF as multipart form data using the field:
+The backend receives the file using **Multer**.
 
-pdf
+---
 
-General chat
+## 2️⃣ Extract PDF Text
 
-POST /api/chat
+The application uses `pdf-parse` to extract text from the uploaded PDF.
 
-Example request:
+```javascript
+const result = await parser.getText();
+```
 
+The extracted text contains the content of the document.
+
+---
+
+## 3️⃣ Split Text Into Chunks
+
+The extracted document text is divided into smaller chunks.
+
+```javascript
+const chunks = chunkText(result.text);
+```
+
+Chunking makes semantic retrieval more effective because the system can retrieve only the relevant sections instead of sending the entire PDF to the LLM.
+
+---
+
+## 4️⃣ Generate Embeddings
+
+Each chunk is converted into a numerical vector representation.
+
+```text
+Text Chunk
+    │
+    ▼
+Embedding Model
+    │
+    ▼
+[0.012, -0.431, 0.228, ...]
+```
+
+These vectors represent the semantic meaning of the text.
+
+---
+
+## 5️⃣ Store Vectors in MongoDB
+
+The generated embeddings and their associated text are stored in MongoDB.
+
+Each chunk contains metadata such as:
+
+```javascript
 {
-  "chatId": "optional-chat-id",
-  "message": "Explain Docker in simple terms"
-}
+    text: "...",
 
-The streaming response also provides the active chat ID through:
+    embedding: [...],
 
-X-Chat-Id
-
-Environment Variables
-
-Create backend/.env:
-
-PORT=5001
-CLIENT_URL=http://localhost:5173
-
-MONGODB_URI=your_mongodb_connection_string
-
-MISTRAL_API_KEY=your_mistral_api_key
-TAVILY_API_KEY=your_tavily_api_key
-
-Never commit API keys or .env files to Git.
-
-CORS
-
-CLIENT_URL must exactly match the frontend origin.
-
-For example:
-
-CLIENT_URL=http://localhost:5173
-
-when the frontend is running at:
-
-http://localhost:5173
-
-If Vite runs on port 5174, use:
-
-CLIENT_URL=http://localhost:5174
-
-Restart the backend after changing .env.
-
-Installation
-
-Backend
-
-cd backend
-npm install
-npm run dev
-
-The backend runs on:
-
-http://localhost:5001
-
-Frontend
-
-In another terminal:
-
-cd frontend
-npm install
-npm run dev
-
-Use the URL printed by Vite, commonly:
-
-http://localhost:5173
-
-Backend Startup
-
-The backend:
-
-Loads environment variables.
-
-Connects to MongoDB.
-
-Creates/checks the vector index.
-
-Starts the Express server.
-
-await connectDB();
-await createVectorIndex();
-
-app.listen(PORT, () => {
-    console.log(`AskAI server running on port ${PORT}`);
-});
-
-MongoDB Document Model
-
-Document metadata
-
-{
-    documentId,
-    fileName,
-    pages,
-    textLength,
-    chunkCount,
-    embeddingDimension,
-    createdAt
-}
-
-PDF chunks
-
-{
-    text,
-    embedding,
     metadata: {
         documentId,
         fileName,
         chunkIndex
-    },
-    createdAt
+    }
 }
+```
 
-A single documentId links all chunks belonging to the same PDF.
+The `documentId` connects all chunks belonging to the same PDF.
 
-Technologies
+---
 
-Frontend
+## 6️⃣ Semantic Retrieval
 
-React
+When a user asks a question, the question is converted into an embedding.
 
-Vite
+The system then performs vector similarity search against the stored document chunks.
 
-Axios
+The most semantically relevant chunks are retrieved.
 
-Backend
+---
 
-Node.js
+## 7️⃣ Generate Answer
 
-Express.js
+The retrieved chunks are provided to the LLM as context.
 
-CORS
+The LLM then generates an answer based on the relevant document information.
 
-Multer
-
-AI
-
+```text
+Question
+   +
+Retrieved Context
+   │
+   ▼
 Mistral AI
+   │
+   ▼
+Answer
+```
 
-LangChain
+---
 
-Mistral tool calling
+# 🧩 General AI Architecture
 
-RAG
+```text
+                React Frontend
+                       │
+                       │ HTTP
+                       ▼
+                Express Backend
+                       │
+                       ▼
+                 Chat Controller
+                       │
+                       ▼
+                Chat Service
+                       │
+                       ▼
+                  Mistral AI
+                       │
+              ┌────────┴────────┐
+              │                 │
+         No Web Search      Web Search
+              │                 │
+              ▼                 ▼
+        Direct Answer       Tavily API
+                                │
+                                ▼
+                          Search Results
+                                │
+                                ▼
+                           Mistral AI
+                                │
+                                ▼
+                           Final Answer
+```
 
-PDF text extraction
+---
 
-Text chunking
+# 🛠 Tech Stack
 
-Embeddings
+## Frontend
 
-Vector similarity search
+- React.js
+- Vite
+- Axios
+- Tailwind CSS
+- React Context API
+- Lucide React
 
-MongoDB vector search
+---
 
-Web Search
+## Backend
 
-Tavily
+- Node.js
+- Express.js
+- MongoDB
+- MongoDB Vector Search
+- Multer
+- pdf-parse
+- dotenv
+- CORS
 
-Database
+---
 
-MongoDB
+## AI / RAG
 
-Error Handling
+- Mistral AI
+- LangChain
+- LangChain Mistral Integration
+- Embedding Models
+- Vector Similarity Search
+- Retrieval-Augmented Generation
 
-The backend uses centralized error handling:
+---
 
-app.use(notFound);
-app.use(errorHandler);
+## Web Search
 
-Controllers pass errors to the middleware with:
+- Tavily Search API
 
-next(error);
+---
 
-Health Check
+## Development Tools
 
+- Git
+- GitHub
+- VS Code
+- Postman
+- Docker
+- npm
+
+---
+
+# 🏗 Project Architecture
+
+```text
+AskAI
+│
+├── frontend
+│   ├── src
+│   │   ├── components
+│   │   ├── pages
+│   │   ├── services
+│   │   ├── context
+│   │   ├── assets
+│   │   └── App.jsx
+│   │
+│   ├── public
+│   ├── vite.config.js
+│   └── package.json
+│
+├── backend
+│   ├── config
+│   ├── controllers
+│   ├── middleware
+│   ├── models
+│   ├── routes
+│   ├── services
+│   ├── utils
+│   ├── app.js
+│   ├── server.js
+│   └── package.json
+│
+└── README.md
+```
+
+---
+
+# 📂 Backend Structure
+
+```text
+backend
+│
+├── config
+│   ├── db.js
+│   └── vectorStore.js
+│
+├── controllers
+│   ├── chatController.js
+│   ├── pdfController.js
+│   └── ...
+│
+├── middleware
+│   ├── errorMiddleware.js
+│   └── uploadMiddleware.js
+│
+├── models
+│   └── ...
+│
+├── routes
+│   ├── chatRoutes.js
+│   ├── pdfRoutes.js
+│   ├── ragRoutes.js
+│   ├── retrievalRoutes.js
+│   └── healthRoutes.js
+│
+├── services
+│   ├── chatService.js
+│   ├── embeddingService.js
+│   ├── pdfService.js
+│   ├── documentService.js
+│   └── vectorIndexService.js
+│
+├── utils
+│   └── chunkText.js
+│
+├── app.js
+├── server.js
+└── package.json
+```
+
+---
+
+# 📡 API Overview
+
+## Health Check
+
+```http
 GET /api/health
+```
 
-This endpoint can be used to verify that the backend is running and can later be used by deployment or CI/CD health checks.
+---
 
-Security Considerations
+## PDF Upload
 
-Before deploying publicly:
+```http
+POST /api/pdfs/upload
+```
 
-Keep API keys on the backend.
+Upload a PDF using multipart form data.
 
-Do not commit .env.
+Field:
 
-Configure CORS for the production frontend domain.
+```text
+pdf
+```
 
-Validate PDF file types and file sizes.
+Example response:
 
-Add authentication and authorization for multi-user use.
+```json
+{
+    "success": true,
+    "documentId": "...",
+    "file": {
+        "name": "document.pdf",
+        "size": 123456,
+        "pages": 10,
+        "textLength": 25000,
+        "chunkCount": 40,
+        "embeddingDimension": 768
+    }
+}
+```
 
-Add rate limiting to public APIs.
+---
 
-Secure MongoDB credentials and network access.
+## General Chat
 
-Validate and sanitize user input.
+```http
+GET /api/chat
+```
 
-Add logging and monitoring for production.
+Retrieve all general conversations.
 
-Possible Future Improvements
+---
 
-User authentication
+```http
+POST /api/chat
+```
 
-Per-user document isolation
+Send a message to the AI assistant.
 
-Document deletion
+Example request:
 
-PDF preview
+```json
+{
+    "chatId": "optional-chat-id",
+    "message": "Explain Docker in simple terms"
+}
+```
 
-Source citations for RAG answers
+The backend streams the generated AI response to the client.
 
-Improved chunking strategies
+---
 
-Conversation renaming
+# 🔄 General Chat Request Flow
 
-Conversation export
+```text
+User
+ │
+ ▼
+React Chat UI
+ │
+ ▼
+Axios / Fetch
+ │
+ ▼
+POST /api/chat
+ │
+ ▼
+Chat Controller
+ │
+ ▼
+Chat Service
+ │
+ ▼
+Mistral AI
+ │
+ ├── Direct Answer
+ │
+ └── Tool Call
+        │
+        ▼
+      Tavily
+        │
+        ▼
+   Search Results
+        │
+        ▼
+    Mistral AI
+        │
+        ▼
+ Streaming Response
+        │
+        ▼
+ React UI
+```
 
-Automated tests
+---
 
-Docker deployment
+# 📄 PDF Processing Flow
 
-CI/CD pipeline
+```text
+Upload PDF
+    │
+    ▼
+Multer
+    │
+    ▼
+Read PDF
+    │
+    ▼
+pdf-parse
+    │
+    ▼
+Extract Text
+    │
+    ▼
+Chunk Text
+    │
+    ▼
+Generate Embeddings
+    │
+    ▼
+MongoDB
+    │
+    ├── Document Metadata
+    │
+    └── Vector Chunks
+```
 
-Production monitoring
+---
 
-Project Goal
+# 🗄 MongoDB Data Model
 
-AskAI demonstrates how a modern AI-powered full-stack application can combine:
+## Documents Collection
 
+Stores metadata for uploaded PDFs.
+
+```javascript
+{
+    documentId: "...",
+    fileName: "example.pdf",
+    pages: 10,
+    textLength: 25000,
+    chunkCount: 40,
+    embeddingDimension: 768,
+    createdAt: "..."
+}
+```
+
+---
+
+## Vector Documents
+
+Each PDF chunk is stored with its embedding.
+
+```javascript
+{
+    text: "Relevant document text...",
+
+    embedding: [
+        0.012,
+        -0.431,
+        0.228
+    ],
+
+    metadata: {
+        documentId: "...",
+        fileName: "example.pdf",
+        chunkIndex: 0
+    },
+
+    createdAt: "..."
+}
+```
+
+---
+
+# 🔢 Vector Similarity
+
+The system represents text as vectors and compares their semantic similarity.
+
+A simplified cosine similarity calculation can be represented as:
+
+```text
+                 A · B
+Similarity = ─────────────
+             |A| × |B|
+```
+
+A higher similarity score means the two vectors are semantically closer.
+
+This allows the application to retrieve relevant document chunks even when the user's question does not contain the exact words used in the PDF.
+
+---
+
+# ⚡ Streaming Responses
+
+General AI responses are streamed from the backend instead of waiting for the complete response.
+
+```text
+Mistral AI
+    │
+    │ chunk 1
+    ▼
+Backend
+    │
+    │ chunk 2
+    ▼
+Backend
+    │
+    │ chunk 3
+    ▼
 Frontend
-+ Backend APIs
-+ LLM
-+ Tool Calling
-+ Web Search
-+ PDF Processing
-+ Embeddings
-+ Vector Search
-+ RAG
-+ Database
+    │
+    ▼
+Live AI Response
+```
 
-into one practical application.
+This provides a more responsive ChatGPT-style user experience.
 
-License
+---
 
-This project is intended for educational and portfolio purposes.
+# 🔐 Environment Variables
+
+Create a `.env` file inside the backend directory.
+
+```env
+PORT=5001
+
+CLIENT_URL=http://localhost:5173
+
+MONGO_URI=your_mongodb_connection_string
+
+MISTRAL_API_KEY=your_mistral_api_key
+
+TAVILY_API_KEY=your_tavily_api_key
+```
+
+> ⚠️ Never commit your `.env` file or API keys to GitHub.
+
+Add the following to `.gitignore`:
+
+```text
+.env
+node_modules
+uploads
+```
+
+---
+
+# 🚀 Installation
+
+## 1. Clone Repository
+
+```bash
+git clone https://github.com/YOUR_USERNAME/YOUR_REPOSITORY_NAME.git
+
+cd YOUR_REPOSITORY_NAME
+```
+
+---
+
+# Backend Setup
+
+```bash
+cd backend
+
+npm install
+```
+
+Create the `.env` file:
+
+```env
+PORT=5001
+CLIENT_URL=http://localhost:5173
+
+MONGO_URI=your_mongodb_connection_string
+
+MISTRAL_API_KEY=your_mistral_api_key
+
+TAVILY_API_KEY=your_tavily_api_key
+```
+
+Start the backend:
+
+```bash
+npm run dev
+```
+
+Backend will run on:
+
+```text
+http://localhost:5001
+```
+
+---
+
+# Frontend Setup
+
+Open another terminal:
+
+```bash
+cd frontend
+
+npm install
+```
+
+Start the frontend:
+
+```bash
+npm run dev
+```
+
+Frontend will normally run on:
+
+```text
+http://localhost:5173
+```
+
+---
+
+# 🧪 Testing the Application
+
+## Test General AI
+
+Try questions such as:
+
+```text
+Explain Docker in simple terms.
+```
+
+```text
+What is REST API?
+```
+
+---
+
+## Test Web Search
+
+Try a time-sensitive question:
+
+```text
+Who is the current Chief Minister of Bihar?
+```
+
+The model can recognize that the information may have changed and use Tavily web search before generating the answer.
+
+---
+
+## Test PDF RAG
+
+1. Open PDF Chat.
+2. Upload a PDF.
+3. Wait for processing.
+4. Ask a question related to the document.
+5. The system retrieves relevant chunks.
+6. The LLM generates an answer using the retrieved context.
+
+---
+
+# 🧠 Key Concepts Demonstrated
+
+This project demonstrates practical implementation of:
+
+- Large Language Models (LLMs)
+- Prompt Engineering
+- Retrieval-Augmented Generation (RAG)
+- Text Chunking
+- Embeddings
+- Vector Databases
+- Semantic Search
+- Vector Similarity
+- Tool Calling
+- Web Search Integration
+- Streaming AI Responses
+- REST APIs
+- MongoDB
+- React
+- Node.js
+- Express.js
+- API Integration
+- Error Handling
+- File Upload Processing
+
+---
+
+# 🔄 RAG vs General AI
+
+| Feature | General AI | PDF Chat / RAG |
+|---|---|---|
+| LLM | Mistral AI | Mistral AI |
+| User Question | ✅ | ✅ |
+| Conversation History | ✅ | Depends on implementation |
+| Web Search | ✅ | Not necessarily |
+| PDF Context | ❌ | ✅ |
+| Embeddings | ❌ | ✅ |
+| Vector Search | ❌ | ✅ |
+| MongoDB Vector Store | ❌ | ✅ |
+| Document Retrieval | ❌ | ✅ |
+
+---
+
+# 📈 Future Improvements
+
+- 🔎 Better hybrid search
+- 📚 Multi-document conversations
+- 📑 Page-level citations
+- 🔗 Source references in answers
+- 🧠 Improved reranking
+- 💾 Conversation memory improvements
+- 📊 RAG evaluation metrics
+- 🧪 Automated RAG testing
+- 🔄 CI/CD pipeline
+- 🐳 Docker deployment
+- ☁️ Cloud deployment
+- 🔐 Authentication and user-specific documents
+- 📱 Mobile responsive improvements
+- 🤖 Multiple LLM provider support
+
+---
+
+# 🐳 Docker
+
+The project can be containerized using Docker for consistent development and deployment environments.
+
+Example architecture:
+
+```text
+              Docker
+                │
+        ┌───────┴───────┐
+        │               │
+   Frontend          Backend
+   Container         Container
+        │               │
+        └───────┬───────┘
+                │
+             MongoDB
+```
+
+---
+
+# 🔄 CI/CD Roadmap
+
+A future CI/CD pipeline can automatically:
+
+```text
+Git Push
+   │
+   ▼
+GitHub
+   │
+   ▼
+CI Pipeline
+   │
+   ├── Install Dependencies
+   │
+   ├── Run Tests
+   │
+   ├── Build Frontend
+   │
+   ├── Build Backend
+   │
+   └── Check Application
+           │
+           ▼
+       Deployment
+```
+
+---
+
+# 🎯 Project Goals
+
+The main goal of AskAI is to demonstrate how modern AI applications can combine:
+
+```text
+LLM
+ +
+Embeddings
+ +
+Vector Database
+ +
+Semantic Retrieval
+ +
+Web Search
+ +
+REST APIs
+ +
+React
+```
+
+to build a practical AI assistant rather than a simple chatbot interface.
+
+---
+
+# 📸 Screenshots
+
+## General AI
+
+![General AI](screenshots/general-ai.png)
+
+---
+
+## PDF Chat
+
+![PDF Chat](screenshots/pdf-chat.png)
+
+---
+
+## PDF Upload
+
+![PDF Upload](screenshots/pdf-upload.png)
+
+---
+
+# 🤝 Contributing
+
+Contributions are welcome.
+
+1. Fork the repository.
+2. Create a feature branch.
+
+```bash
+git checkout -b feature/new-feature
+```
+
+3. Make your changes.
+4. Commit your changes.
+
+```bash
+git commit -m "Add new feature"
+```
+
+5. Push the branch.
+
+```bash
+git push origin feature/new-feature
+```
+
+6. Open a Pull Request.
+
+---
+
+# 👨‍💻 Author
+
+**Himanshu Shekhar**
+
+📧 Email: harsh06022005@gmail.com
+
+💻 GitHub:  
+https://github.com/himanshushe06
+
+🔗 LinkedIn:  
+https://www.linkedin.com/in/himanshu0602/
+
+---
+
+# ⭐ Support
+
+If you found this project useful, consider giving the repository a ⭐ on GitHub.
+
+It helps support the project and makes it easier for others to discover it.
+
+---
+
+# 📜 License
+
+This project is licensed under the MIT License.
+
+See the `LICENSE` file for more information.
