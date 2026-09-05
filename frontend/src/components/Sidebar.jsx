@@ -1,4 +1,4 @@
-import { FileText,Plus,Sparkles,MessageSquare,Upload,ChevronRight } from "lucide-react";
+import { FileText,Plus,Sparkles,MessageSquare,ChevronRight } from "lucide-react";
 import DocumentList from "./DocumentList";
 import UploadPdf from "./UploadPdf";
 import RecentChats from "./RecentChats";

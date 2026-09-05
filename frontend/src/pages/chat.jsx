@@ -1,6 +1,6 @@
 import { useEffect,useRef,useState } from "react";
 
-import { Copy,Check,Menu,X,Send,Sparkles,FileText,Loader2,User,Paperclip } from "lucide-react";
+import { Copy,Check,Menu,X,Send,Sparkles,FileText,Loader2,User } from "lucide-react";
 import Sidebar from "../components/Sidebar";
 import { getAllChats,getChat,sendChat,deleteChat } from "../services/chatService";
 
@@ -151,23 +151,24 @@ function Chat() {
         setSidebarOpen(false);
     };
 
-    const handleUpload = async ( file ) => {
+    const handleUpload = async (file) => {
         try {
             setUploading(true);
-            const result = await uploadPdf(file);
+
+            await uploadPdf(file);
+
             setToast({
                 type: "success",
-                message: "Your PDF is ready for AI chat."
+                message: "PDF uploaded successfully"
             });
 
             const documentsResult = await getDocuments();
-            setDocuments( documentsResult.documents || [] );
+            setDocuments(documentsResult.documents || []);
         } catch (error) {
-            console.error( "PDF upload failed:", error );
-
+            console.error(error);
             setToast({
                 type: "error",
-                message: error.response?.data?.message || "Unable to process the PDF."
+                message: "Failed to upload PDF"
             });
         } finally {
             setUploading(false);

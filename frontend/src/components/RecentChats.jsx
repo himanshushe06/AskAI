@@ -1,4 +1,4 @@
-import { MessageSquare,MoreVertical,Trash2,Clock } from "lucide-react";
+import { MessageSquare,MoreVertical,Trash2 } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 
 function RecentChats({ chats = [],selectedChatId,onSelectChat,onDeleteChat}) {
